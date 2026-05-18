@@ -51,7 +51,32 @@ TRANSLATIONS = {
         'analysis_no_errors': 'Синтаксических ошибок не найдено.',
         'analysis_completed': 'Анализ завершён (симуляция)',
         'error_example': 'Неизвестный идентификатор \'x\'',
-        'help_text': 'Все функции реализованы:\n• Вкладки, нумерация строк, подсветка синтаксиса\n• Drag & Drop, строка состояния, изменение размера текста\n• Горячие клавиши (Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+R …)\n• Запуск анализа → вывод + таблица ошибок',
+        'help_text': 'Справка по функциям редактора\n\n'
+                     'Файл:\n'
+                     'Ctrl+N - создать новый файл.\n'
+                     'Ctrl+O - открыть файл.\n'
+                     'Ctrl+S - сохранить файл.\n'
+                     'Ctrl+Shift+S - сохранить файл как.\n'
+                     'Ctrl+Q - выйти из приложения.\n\n'
+                     'Правка:\n'
+                     'Ctrl+Z - отменить последнее действие.\n'
+                     'Ctrl+Y - повторить отменённое действие.\n'
+                     'Ctrl+X - вырезать выделенный текст.\n'
+                     'Ctrl+C - скопировать выделенный текст.\n'
+                     'Ctrl+V - вставить текст из буфера обмена.\n'
+                     'Del - удалить выделенный текст.\n'
+                     'Ctrl+A - выделить весь текст.\n\n'
+                     'Запуск:\n'
+                     'Ctrl+R - запустить демонстрационный анализ текста.\n\n'
+                     'Вид:\n'
+                     'Ctrl++ - увеличить размер шрифта.\n'
+                     'Ctrl+- - уменьшить размер шрифта.\n'
+                     'Меню Вид -> Тема - переключить дизайн приложения.\n'
+                     'Меню Вид -> Язык - переключить язык интерфейса.\n\n'
+                     'Дополнительно:\n'
+                     'Перетаскивание файла в редактор - вставить содержимое файла.\n'
+                     'Перетаскивание файла в окно приложения - открыть файл в новой вкладке.\n'
+                     'Нижняя область окна используется для вывода результатов анализа и таблицы ошибок.',
         'about_text': 'Лабораторная работа\nРедактор для языкового процессора\nPyQt6 + Python\n\nАвтор: Костюк Кирилл',
         'line': 'Строка',
         'column': 'Столбец',
@@ -104,7 +129,32 @@ TRANSLATIONS = {
         'analysis_no_errors': 'No syntax errors found.',
         'analysis_completed': 'Analysis completed (simulation)',
         'error_example': 'Unknown identifier \'x\'',
-        'help_text': 'All functions are implemented:\n• Tabs, line numbering, syntax highlighting\n• Drag & Drop, status bar, font size change\n• Hotkeys (Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+R …)\n• Run analysis → output + error table',
+        'help_text': 'Editor help\n\n'
+                     'File:\n'
+                     'Ctrl+N - create a new file.\n'
+                     'Ctrl+O - open a file.\n'
+                     'Ctrl+S - save the file.\n'
+                     'Ctrl+Shift+S - save the file as.\n'
+                     'Ctrl+Q - exit the application.\n\n'
+                     'Edit:\n'
+                     'Ctrl+Z - undo the last action.\n'
+                     'Ctrl+Y - redo the undone action.\n'
+                     'Ctrl+X - cut the selected text.\n'
+                     'Ctrl+C - copy the selected text.\n'
+                     'Ctrl+V - paste text from the clipboard.\n'
+                     'Del - delete the selected text.\n'
+                     'Ctrl+A - select all text.\n\n'
+                     'Run:\n'
+                     'Ctrl+R - run the demo text analysis.\n\n'
+                     'View:\n'
+                     'Ctrl++ - increase font size.\n'
+                     'Ctrl+- - decrease font size.\n'
+                     'View -> Theme - switch the application theme.\n'
+                     'View -> Language - switch the interface language.\n\n'
+                     'Additional features:\n'
+                     'Drop a file into the editor - insert file contents.\n'
+                     'Drop a file onto the application window - open it in a new tab.\n'
+                     'The lower area is used for analysis output and the error table.',
         'about_text': 'Lab work\nLanguage Processor Editor\nPyQt6 + Python\n\nAuthor: Kirill',
         'line': 'Line',
         'column': 'Column',
