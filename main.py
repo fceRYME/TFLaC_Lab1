@@ -3,6 +3,8 @@ from PyQt6.QtWidgets import *
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
 
+from scanner import LexicalAnalyzer
+
 
 TRANSLATIONS = {
     'ru': {
@@ -41,15 +43,18 @@ TRANSLATIONS = {
         'untitled': 'Безымянный',
         'output': 'Вывод',
         'errors': 'Ошибки',
+        'results': 'Результаты',
         'error': 'Ошибка',
         'confirm_save_title': 'Сохранить изменения?',
         'confirm_save_text': 'Файл «{filename}» был изменён.\nСохранить?',
         'confirm_exit_title': 'Подтверждение выхода',
         'confirm_exit_text': 'Есть несохранённые изменения. Выйти без сохранения?',
         'analysis_started': '=== Анализ запущен ===',
-        'analysis_processed': 'Исходный код обработан.',
-        'analysis_no_errors': 'Синтаксических ошибок не найдено.',
-        'analysis_completed': 'Анализ завершён (симуляция)',
+        'analysis_processed': 'Лексический анализ выполнен.',
+        'analysis_no_errors': 'Лексических ошибок не найдено.',
+        'analysis_errors_found': 'Найдено лексических ошибок: {count}',
+        'analysis_tokens_found': 'Выделено лексем: {count}',
+        'analysis_completed': 'Лексический анализ завершён',
         'error_example': 'Неизвестный идентификатор \'x\'',
         'help_text': 'Справка по функциям редактора\n\n'
                      'Файл:\n'
@@ -67,7 +72,7 @@ TRANSLATIONS = {
                      'Del - удалить выделенный текст.\n'
                      'Ctrl+A - выделить весь текст.\n\n'
                      'Запуск:\n'
-                     'Ctrl+R - запустить демонстрационный анализ текста.\n\n'
+                     'Ctrl+R - запустить лексический анализ текста.\n\n'
                      'Вид:\n'
                      'Ctrl++ - увеличить размер шрифта.\n'
                      'Ctrl+- - уменьшить размер шрифта.\n'
@@ -76,12 +81,16 @@ TRANSLATIONS = {
                      'Дополнительно:\n'
                      'Перетаскивание файла в редактор - вставить содержимое файла.\n'
                      'Перетаскивание файла в окно приложения - открыть файл в новой вкладке.\n'
-                     'Нижняя область окна используется для вывода результатов анализа и таблицы ошибок.',
+                     'Нижняя область окна используется для вывода результатов анализа и таблицы лексем.',
         'about_text': 'Лабораторная работа\nРедактор для языкового процессора\nPyQt6 + Python\n\nАвтор: Костюк Кирилл',
         'line': 'Строка',
         'column': 'Столбец',
         'position': 'Позиция',
         'message': 'Сообщение',
+        'token_code': 'Условный код',
+        'token_type': 'Тип лексемы',
+        'token_value': 'Лексема',
+        'token_location': 'Местоположение',
     },
     'en': {
         'title': 'Language Processor Editor',
@@ -119,15 +128,18 @@ TRANSLATIONS = {
         'untitled': 'Untitled',
         'output': 'Output',
         'errors': 'Errors',
+        'results': 'Results',
         'error': 'Error',
         'confirm_save_title': 'Save changes?',
         'confirm_save_text': 'File «{filename}» has been modified.\nSave?',
         'confirm_exit_title': 'Confirm Exit',
         'confirm_exit_text': 'There are unsaved changes. Exit without saving?',
         'analysis_started': '=== Analysis started ===',
-        'analysis_processed': 'Source code processed.',
-        'analysis_no_errors': 'No syntax errors found.',
-        'analysis_completed': 'Analysis completed (simulation)',
+        'analysis_processed': 'Lexical analysis completed.',
+        'analysis_no_errors': 'No lexical errors found.',
+        'analysis_errors_found': 'Lexical errors found: {count}',
+        'analysis_tokens_found': 'Lexemes found: {count}',
+        'analysis_completed': 'Lexical analysis completed',
         'error_example': 'Unknown identifier \'x\'',
         'help_text': 'Editor help\n\n'
                      'File:\n'
@@ -145,7 +157,7 @@ TRANSLATIONS = {
                      'Del - delete the selected text.\n'
                      'Ctrl+A - select all text.\n\n'
                      'Run:\n'
-                     'Ctrl+R - run the demo text analysis.\n\n'
+                     'Ctrl+R - run lexical analysis.\n\n'
                      'View:\n'
                      'Ctrl++ - increase font size.\n'
                      'Ctrl+- - decrease font size.\n'
@@ -154,12 +166,16 @@ TRANSLATIONS = {
                      'Additional features:\n'
                      'Drop a file into the editor - insert file contents.\n'
                      'Drop a file onto the application window - open it in a new tab.\n'
-                     'The lower area is used for analysis output and the error table.',
+                     'The lower area is used for analysis output and the lexeme table.',
         'about_text': 'Lab work\nLanguage Processor Editor\nPyQt6 + Python\n\nAuthor: Kirill',
         'line': 'Line',
         'column': 'Column',
         'position': 'Position',
         'message': 'Message',
+        'token_code': 'Token code',
+        'token_type': 'Token type',
+        'token_value': 'Lexeme',
+        'token_location': 'Location',
     }
 }
 
@@ -360,8 +376,12 @@ class MainWindow(QMainWindow):
         self.output_area.setReadOnly(True)
         self.output_tabs.addTab(self.output_area, "")
 
-        self.errors_table = QTableWidget(0, 3)
+        self.errors_table = QTableWidget(0, 4)
         self.errors_table.setAlternatingRowColors(True)
+        self.errors_table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+        self.errors_table.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
+        self.errors_table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.errors_table.cellClicked.connect(self.on_result_table_cell_clicked)
         self.errors_table.horizontalHeader().setStretchLastSection(True)
         self.output_tabs.addTab(self.errors_table, "")
 
@@ -753,9 +773,14 @@ class MainWindow(QMainWindow):
         self.hybrid_theme_act.setText(self.tr('theme_hybrid'))
 
         self.output_tabs.setTabText(0, self.tr('output'))
-        self.output_tabs.setTabText(1, self.tr('errors'))
+        self.output_tabs.setTabText(1, self.tr('results'))
 
-        headers = [self.tr('line'), self.tr('position'), self.tr('message')]
+        headers = [
+            self.tr('token_code'),
+            self.tr('token_type'),
+            self.tr('token_value'),
+            self.tr('token_location'),
+        ]
         self.errors_table.setHorizontalHeaderLabels(headers)
 
         self.status_bar.showMessage(self.tr('ready'))
@@ -1149,6 +1174,19 @@ class MainWindow(QMainWindow):
 
     def copy(self):
         ed = self.current_editor()
+        focus_widget = QApplication.focusWidget()
+        table_has_focus = focus_widget == self.errors_table or self.errors_table.isAncestorOf(focus_widget)
+
+        if table_has_focus and self.copy_selected_results():
+            return
+
+        if ed and ed.textCursor().hasSelection():
+            ed.copy()
+            return
+
+        if self.output_tabs.currentIndex() == 1 and self.copy_selected_results():
+            return
+
         if ed:
             ed.copy()
 
@@ -1172,19 +1210,76 @@ class MainWindow(QMainWindow):
         editor = self.current_editor()
         if not editor:
             return
+
+        result = LexicalAnalyzer().analyze(editor.toPlainText())
+
         self.output_area.clear()
         self.output_area.append(self.tr('analysis_started'))
         self.output_area.append(self.tr('analysis_processed'))
-        self.output_area.append(self.tr('analysis_no_errors'))
+        self.output_area.append(self.tr('analysis_tokens_found', count=len(result.tokens)))
+        if result.errors:
+            self.output_area.append(self.tr('analysis_errors_found', count=len(result.errors)))
+        else:
+            self.output_area.append(self.tr('analysis_no_errors'))
 
         self.errors_table.setRowCount(0)
-        self.errors_table.insertRow(0)
-        self.errors_table.setItem(0, 0, QTableWidgetItem("23"))
-        self.errors_table.setItem(0, 1, QTableWidgetItem("12"))
-        self.errors_table.setItem(0, 2, QTableWidgetItem(self.tr('error_example')))
+        for row, lexeme in enumerate(result.tokens):
+            self.errors_table.insertRow(row)
+            values = [
+                str(lexeme.code),
+                lexeme.token_type,
+                lexeme.value,
+                lexeme.location(),
+            ]
+
+            for column, value in enumerate(values):
+                item = QTableWidgetItem(value)
+                if lexeme.is_error:
+                    item.setData(Qt.ItemDataRole.UserRole, lexeme.absolute_start)
+                    item.setForeground(QBrush(QColor("#ff6b6b")))
+                self.errors_table.setItem(row, column, item)
+
+        self.errors_table.resizeColumnsToContents()
         self.output_tabs.setCurrentIndex(1)
 
         self.status_bar.showMessage(self.tr('analysis_completed'))
+
+    def on_result_table_cell_clicked(self, row, _):
+        item = self.errors_table.item(row, 0)
+        if item is None:
+            return
+
+        position = item.data(Qt.ItemDataRole.UserRole)
+        if position is None:
+            return
+
+        editor = self.current_editor()
+        if not editor:
+            return
+
+        cursor = editor.textCursor()
+        cursor.setPosition(position)
+        editor.setTextCursor(cursor)
+        editor.setFocus()
+        editor.centerCursor()
+        self.update_status_bar()
+
+    def copy_selected_results(self):
+        selected_ranges = self.errors_table.selectedRanges()
+        if not selected_ranges:
+            return False
+
+        copied_rows = []
+        for selected_range in selected_ranges:
+            for row in range(selected_range.topRow(), selected_range.bottomRow() + 1):
+                values = []
+                for column in range(selected_range.leftColumn(), selected_range.rightColumn() + 1):
+                    item = self.errors_table.item(row, column)
+                    values.append(item.text() if item else "")
+                copied_rows.append("\t".join(values))
+
+        QApplication.clipboard().setText("\n".join(copied_rows))
+        return True
 
     
     def zoom_in(self):
